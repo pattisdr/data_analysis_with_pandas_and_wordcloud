@@ -1,6 +1,5 @@
 import csv
 import requests
-import urlparse
 
 """
 Pulls all PR's submitted to CenterForOpenScience.osf.io and returns a CSV of
@@ -19,14 +18,16 @@ pr_data = []
 def get_pull_requests(url):
     resp = requests.get(url)
     data = resp.json()
+    for pr in data:
+        pr_data.append([
+            pr['title'].encode('utf-8'),
+            pr['created_at'],
+            pr['user']['login']
+        ])
     next = resp.links.get('next')
+    print next
     if next:
-        url = resp.links['next']['url']
-        for pr in data:
-            title = pr['title'].encode('utf-8')
-            created = pr['created_at']
-            author = pr['user']['login']
-            pr_data.append([title, author, created])
+        url = next['url']
         return get_pull_requests(url)
 
 def write_pr_data_to_csv(data):
